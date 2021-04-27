@@ -11,11 +11,16 @@ const defaultPostHeaders = {
     'Accept': 'application/json'
 };
 
-module.exports = function (router, store) {
+module.exports = function (router, store, options = null) {
     router.beforeEach((routeTo, routeFrom, next) => {
         if (typeof(fetch) !== undefined) {
             if (store.getters.stateString !== undefined) {
-                fetch(routeTo.path, {
+                let initialStateRequestUrl = new URL(routeTo.path, window.location.origin);
+                if (routeTo.query !== null && Object.keys(routeTo.query).length > 0) {
+                    initialStateRequestUrl.search = new URLSearchParams(routeTo.query).toString();
+                }
+
+                fetch(initialStateRequestUrl.toString(), {
                     method: 'POST',
                     headers: defaultPostHeaders,
                     body: null,
@@ -33,7 +38,11 @@ module.exports = function (router, store) {
                         else {
                             store.dispatch('updateViewData', responseData.viewData);
                             store.dispatch('updateViewModel', responseData.viewModel);
-                            store.dispatch('updateMetaTags', responseData.metaTags);
+
+                            if (options === null || (options.disableMetaTags === undefined || options.disableMetaTags === false)) {
+                                store.dispatch('updateMetaTags', responseData.metaTags);
+                            }
+
                             next();
                         }
                     })
@@ -46,6 +55,7 @@ module.exports = function (router, store) {
             }
         }
         else {
+            // eslint-disable-next-line no-undef
             if (process.env.VUE_ENV === 'server') {
                 next();
             }
