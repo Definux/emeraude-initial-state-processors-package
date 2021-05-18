@@ -11,14 +11,34 @@ const defaultPostHeaders = {
     'Accept': 'application/json'
 };
 
+function getQuerySearchFromQueryObject(query) {
+    let result = '';
+    if (query !== null && Object.keys(query).length > 0) {
+        const searchParams = new URLSearchParams();
+        const queryKeys = Object.keys(query);
+        for (const queryKey of queryKeys) {
+            if (Array.isArray(query[queryKey])) {
+                for (let i = 0; i < query[queryKey].length; i++) {
+                    searchParams.append(queryKey, query[queryKey][i]);
+                }
+            }
+            else {
+                searchParams.append(queryKey, query[queryKey]);
+            }
+        }
+
+        result = searchParams.toString();
+    }
+
+    return result;
+}
+
 module.exports = function (router, store, options = null) {
     router.beforeEach((routeTo, routeFrom, next) => {
         if (typeof(fetch) !== undefined) {
             if (store.getters.stateString !== undefined) {
                 let initialStateRequestUrl = new URL(routeTo.path, window.location.origin);
-                if (routeTo.query !== null && Object.keys(routeTo.query).length > 0) {
-                    initialStateRequestUrl.search = new URLSearchParams(routeTo.query).toString();
-                }
+                initialStateRequestUrl.search = getQuerySearchFromQueryObject(routeTo.query);
 
                 fetch(initialStateRequestUrl.toString(), {
                     method: 'POST',
