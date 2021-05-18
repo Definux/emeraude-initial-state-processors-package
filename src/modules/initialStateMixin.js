@@ -89,7 +89,7 @@ const initialState = {
                 document.title = value.title.value;
                 let canonicalTag = document.querySelector('link[rel="canonical"]');
                 if (canonicalTag !== null) {
-                    canonicalTag.setAttribute('href', location.origin + value.canonical);
+                    canonicalTag.setAttribute('href', value.canonical);
                 }
             }
             catch (e) {
