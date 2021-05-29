@@ -98,6 +98,37 @@ const initialState = {
         resetStateString(context) {
             context.commit('SET_STATE_STRING', newGuid());
         },
+        reloadInitialState(context) {
+            return new Promise((resolve, reject) => {
+                fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: null,
+                    credentials: 'include'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                    })
+                    .then(responseData => {
+                        if (responseData) {
+                            context.dispatch('updateViewModel', responseData.viewModel);
+                            context.dispatch('updateViewData', responseData.viewData);
+                            resolve(responseData);
+                        }
+                        else {
+                            reject();
+                        }
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            })
+        }
     }
 };
 
